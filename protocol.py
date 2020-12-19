@@ -93,6 +93,27 @@ if __name__ == '__main__':
     # Run some randomized tests to confirm that.
     n = randint(0, 100)
     for _ in range(1000):
-        accept, _, n = protocol(random_key(), 16, 16, n)
+        accept, _, n = protocol(random_key(16), 16, 16, n)
         assert accept
+
+    # Run a small example.
+    k = 12345
+    l_c = 16
+    l_k = 16
+    n = 98765
+
+    print('Secret key: %d' % k)
+    print('l_c: %d' % l_c)
+    print('l_k: %d' % l_k)
+    print('n: %d' % n)
+    print('### simulation ###')
+
+    accept, msgs, n = protocol(k, l_c, l_k, n)
+
+    print('A->B: ' + str(msgs[0]))
+    print('B->A: ' + str(msgs[1]))
+    print('A->B: ' + str(msgs[2]))
+
+    print('Is A authenticated: ' + str(accept))
+    print('New n value: %d' % n)
 
