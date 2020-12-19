@@ -5,10 +5,10 @@ ID_A = 12345
 
 # Some utils.
 def random_key(l_k):
-    return randint(0, 2**l_k - 1)
+    return randint(1, 2**l_k - 1)
 
 def random_challenge(l_c):
-    return randint(0, 2**l_c - 1)
+    return randint(1, 2**l_c - 1)
 
 # Given an integer `n`. Return the base-10 sum its digits.
 def digit_dec_sum(n):
@@ -32,7 +32,7 @@ def digit_dec_sum(n):
 #
 # The B side is computed automatically. On the other hand
 # the message sent by A during the step 3 can be customized: by providing
-# the function `a_res` (signature: [n] -> r) an user can decide
+# the function `a_res` (signature: [c,n] -> r) an user can decide
 # how A responds to B in the 3rd step, this way it is very easy to
 # implement an attack without rewriting all the code for the protocol.
 # If such function is not provided, by default the legitimate response
@@ -76,7 +76,7 @@ def protocol(k, l_c, l_k, n=0, a_res=None):
         r = leg_r
     else:
         # Use the user provided function to compute the response.
-        r = a_res(n)
+        r = a_res(c, n)
 
     step_3 = r
 
