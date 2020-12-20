@@ -114,6 +114,10 @@ if __name__ == '__main__':
     print('B->A: ' + str(msgs[1]))
     print('A->B: ' + str(msgs[2]))
 
-    print('Is A authenticated: ' + str(accept))
+    if accept:
+        print('A is authenticated')
+    else:
+        print('A is rejected')
+
     print('New n value: %d' % n)
 
