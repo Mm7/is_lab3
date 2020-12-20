@@ -1,14 +1,14 @@
-from random import randint
+import numpy as np
 
 # Constants.
 ID_A = 12345
 
 # Some utils.
 def random_key(l_k):
-    return randint(1, 2**l_k - 1)
+    return np.random.randint(0, 2**l_k)
 
 def random_challenge(l_c):
-    return randint(1, 2**l_c - 1)
+    return np.random.randint(1, 2**l_c)
 
 # Given an integer `n`. Return the base-10 sum its digits.
 def digit_dec_sum(n):
@@ -91,7 +91,7 @@ def protocol(k, l_c, l_k, n=0, a_res=None):
 if __name__ == '__main__':
     # If A is legitimate, then `accept` must be always `True`.
     # Run some randomized tests to confirm that.
-    n = randint(0, 100)
+    n = np.random.randint(0, 100)
     for _ in range(1000):
         accept, _, n = protocol(random_key(16), 16, 16, n)
         assert accept

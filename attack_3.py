@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from timeit import timeit
 
 import protocol
 
@@ -15,11 +16,11 @@ compl = np.zeros((len(l_c), len(l_k)))
 succ_p = np.zeros((len(l_c), len(l_k)), dtype=np.float32)
 
 # Repeat the simulation `sim_cnt` times to average the results.
-sim_cnt = 500
+sim_cnt = 20000
 
 for j in range(len(l_c)):
     for i in range(len(l_k)):
-        for _ in range(sim_cnt):
+        def single_run():
             # Setup phase.
             k = protocol.random_key(l_k[i])
             n = np.random.randint(0, 100)
@@ -28,24 +29,21 @@ for j in range(len(l_c)):
             # [1, 9 * (floor(log10(2^l_k + n)) + 1)].
             upp_bound = 9 * (np.floor(np.log10(2**l_k[i]) + n) + 1)
 
-            # Let's simulate some (desperate) attacks and compute
-            # the success probability from the results.
-            attempts = 50
-            for _ in range(attempts):
-                def attacker_step_3(c, n):
-                    s_c = protocol.digit_dec_sum(c)
-                    s_t = np.random.randint(0, upp_bound)
+            # Let's simulate a (desperate) attack.
+            def attacker_step_3(c, n):
+                s_c = protocol.digit_dec_sum(c)
+                s_t = np.random.randint(0, upp_bound)
 
-                    return s_t * s_c
+                return s_t * s_c
 
-                accepted, _, _ = protocol.protocol(k, l_c[j], l_k[i], n, attacker_step_3)
+            accepted, _, _ = protocol.protocol(k, l_c[j], l_k[i], n, attacker_step_3)
 
-                succ_p[j,i] += accepted
+            succ_p[j,i] += accepted
 
-            compl[j,i] += 1
+        compl[j,i] = timeit(single_run, number=sim_cnt)
 
 compl /= sim_cnt
-succ_p /= (attempts*sim_cnt)
+succ_p /= sim_cnt
 
 # Plot the success attack probability.
 plt.figure()
@@ -62,11 +60,11 @@ plt.legend()
 plt.figure()
 plt.title('Task 3: attack complexity vs key length')
 plt.xlabel('Number of key bits')
-plt.ylabel('Number of iterations')
+plt.ylabel('Time per iteration [us]')
 plt.grid()
 
 for i in range(len(l_c)):
-    plt.plot(l_k, compl[i], label='l_c = %d' % l_c[i])
+    plt.plot(l_k, compl[i] * 1e6, label='l_c = %d' % l_c[i])
 plt.legend()
 
 plt.show()

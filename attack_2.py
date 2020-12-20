@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from timeit import timeit
 
 import protocol
 
@@ -15,11 +16,11 @@ compl = np.zeros((len(l_c), len(l_k)))
 succ_p = np.zeros((len(l_c), len(l_k)), dtype=np.float32)
 
 # Repeat the simulation `sim_cnt` times to average the results.
-sim_cnt = 20
+sim_cnt = 100
 
 for j in range(len(l_c)):
     for i in range(len(l_k)):
-        for _ in range(sim_cnt):
+        def single_run():
             # Setup phase.
             k = protocol.random_key(l_k[i])
 
@@ -45,30 +46,24 @@ for j in range(len(l_c)):
                 if s_t == eav_s_t:
                     keys.append(tst_k)
 
-                # For each iteration increment the complexity counter.
-                compl[j,i] += 1
+            # The attacker knows that the key is in the set `keys`.
+            picked_k = np.random.choice(keys)
 
-            # The attacker knows that the key is in the set `keys`, thus
-            # let's simulate some authentications to get the probability
-            # of success.
-            attempts = 100
-            for _ in range(attempts):
-                # Let's pick a key from the set of candidate keys.
-                picked_k = np.random.choice(keys)
+            def attacker_step_3(c, n):
+                s_c = protocol.digit_dec_sum(c)
+                t = picked_k + n
+                s_t = protocol.digit_dec_sum(t)
 
-                def attacker_step_3(c, n):
-                    s_c = protocol.digit_dec_sum(c)
-                    t = picked_k + n
-                    s_t = protocol.digit_dec_sum(t)
+                return s_t * s_c
 
-                    return s_t * s_c
+            accepted, _, _ = protocol.protocol(k, l_c[j], l_k[i], n + 24, attacker_step_3)
 
-                accepted, _, _ = protocol.protocol(k, l_c[j], l_k[i], n + 24, attacker_step_3)
+            succ_p[j,i] += accepted
 
-                succ_p[j,i] += accepted
+        compl[j,i] = timeit(single_run, number=sim_cnt)
 
 compl /= sim_cnt
-succ_p /= (attempts*sim_cnt)
+succ_p /= (sim_cnt)
 
 # Plot the success attack probability.
 plt.figure()
@@ -85,11 +80,11 @@ plt.legend()
 plt.figure()
 plt.title('Task 2: attack complexity vs key length')
 plt.xlabel('Number of key bits')
-plt.ylabel('Number of iterations')
+plt.ylabel('Time per iteration [ms]')
 plt.grid()
 
 for i in range(len(l_c)):
-    plt.plot(l_k, compl[i], label='l_c = %d' % l_c[i])
+    plt.plot(l_k, compl[i] * 1e3, label='l_c = %d' % l_c[i])
 plt.legend()
 
 plt.show()
